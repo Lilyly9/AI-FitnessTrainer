@@ -207,6 +207,4 @@ marimo/_lsp/
 __marimo__/
 
 # 自定义：忽略数据集和模型文件
-data/raw/
-data/processed/
 models/
