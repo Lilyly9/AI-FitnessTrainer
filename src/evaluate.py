@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+# import seaborn as sns
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
 from torch.utils.data import DataLoader, TensorDataset
 from model import Gesture1DCNN
@@ -58,11 +58,12 @@ with open('results/classification_report.txt', 'w') as f:
 
 # 混淆矩阵
 cm = confusion_matrix(all_labels, all_preds)
-plt.figure(figsize=(8, 6))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
-plt.xlabel('Predicted')
-plt.ylabel('True')
-plt.title('Confusion Matrix')
-plt.tight_layout()
-plt.savefig('results/confusion_matrix.png')
-print("混淆矩阵已保存到 results/confusion_matrix.png")
+# plt.figure(figsize=(8, 6))
+# sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+# plt.xlabel('Predicted')
+# plt.ylabel('True')
+# plt.title('Confusion Matrix')
+# plt.tight_layout()
+# plt.savefig('results/confusion_matrix.png')
+print("混淆矩阵:\n", cm)
+print("混淆矩阵已保存到内存")

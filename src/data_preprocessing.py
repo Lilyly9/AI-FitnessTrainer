@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from collections import Counter
 import os
+from sklearn.model_selection import train_test_split
 
 DATA_PATH = 'data/processed/pamap2_processed.csv'  
 WINDOW_SIZE = 200
@@ -16,7 +17,7 @@ LABEL_MAP = {4: 0, 5: 1, 6: 2, 24: 3}
 
 #  读取数据
 df = pd.read_csv(DATA_PATH)
-df[SENSOR_COLS] = df[SENSOR_COLS].fillna(method='ffill')   # 用前一个有效值填充
+df[SENSOR_COLS] = df[SENSOR_COLS].ffill()   # 用前一个有效值填充
 # 标签映射
 df['label_mapped'] = df[LABEL_COL].map(LABEL_MAP)
 # 检查是否有未映射的标签
@@ -25,18 +26,17 @@ if df['label_mapped'].isna().any():
     print(df[df['label_mapped'].isna()][LABEL_COL].unique())
     exit()
 
-# 获取所有受试者 ID，自动划分训练/测试集（最后一个 ID 作为测试）
-all_subjects = sorted(df[ID_COL].unique())
-TRAIN_IDS = all_subjects[:-1]   # 除最后一个外的所有
-TEST_IDS = [all_subjects[-1]]   # 最后一个
-print(f"训练集受试者: {TRAIN_IDS}")
-print(f"测试集受试者: {TEST_IDS}")
-
-# 按受试者划分原始数据
-train_df = df[df[ID_COL].isin(TRAIN_IDS)].copy()
-test_df = df[df[ID_COL].isin(TEST_IDS)].copy()
-print(f"训练集原始样本数: {len(train_df)}")
-print(f"测试集原始样本数: {len(test_df)}")
+# 使用分层随机分割（保证每个类别比例一致）
+train_df, test_df = train_test_split(
+    df, 
+    test_size=0.2,  # 测试集占 20%
+    random_state=42,
+    stratify=df[LABEL_COL]  # 按原始标签分层
+)
+print(f"训练集样本数: {len(train_df)}")
+print(f"测试集样本数: {len(test_df)}")
+print(f"训练集标签分布:\n{train_df[LABEL_COL].value_counts().sort_index()}")
+print(f"测试集标签分布:\n{test_df[LABEL_COL].value_counts().sort_index()}")
 
 # Min-Max 归一化
 feature_cols = SENSOR_COLS
