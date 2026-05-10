@@ -1,0 +1,16 @@
+{
+  "best_val_acc": 0.99581589958159,
+  "test_acc": 0.6287625418060201,
+  "best_epoch": 25,
+  "config": {
+    "model_type": "improved_cnn",
+    "batch_size": 32,
+    "epochs": 100,
+    "learning_rate": 0.001,
+    "weight_decay": 1e-05,
+    "dropout_rate": 0.5,
+    "use_augmentation": true,
+    "use_mixup": true,
+    "augmentation_intensity": "medium"
+  }
+}

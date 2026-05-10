@@ -2,63 +2,61 @@ import pandas as pd
 import numpy as np
 from collections import Counter
 import os
+from sklearn.model_selection import train_test_split
 
-DATA_PATH = 'data/raw/gym_gesture/imu_dataset.csv'
+DATA_PATH = 'data/processed/pamap2_processed.csv'  
 WINDOW_SIZE = 200
 STEP_SIZE = 100
-SENSOR_COLS = ['ax', 'ay', 'az', 'gx', 'gy', 'gz']   # 新数据集列名
-LABEL_COL = 'exercise_type'
-ID_COL = 'athlete_id'
+SENSOR_COLS = ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']
+LABEL_COL = 'label'
+ID_COL = 'subject_id'
 OUT_DIR = 'data/processed/'
-LABEL_MAP = {
-    'chest_fly': 0,
-    'chest_press': 1,
-    'lat_pulldown': 2,
-    'seated_row': 3,
-    'tricep_extension': 4
-}
-TRAIN_IDS = [1, 2, 3, 4]   # 按原始要求固定划分
-TEST_IDS = [5]
 
+# 原始标签 → 0~4 的映射
+LABEL_MAP = {4: 0, 5: 1, 6: 2, 24: 3}
 
-# 1. 读取数据
+#  读取数据
 df = pd.read_csv(DATA_PATH)
-print(f"原始数据形状: {df.shape}")
-
-# 2. 填充缺失值
-df[SENSOR_COLS] = df[SENSOR_COLS].ffill()
-
-# 3. 标签映射
+df[SENSOR_COLS] = df[SENSOR_COLS].ffill()   # 用前一个有效值填充
+# 标签映射
 df['label_mapped'] = df[LABEL_COL].map(LABEL_MAP)
+# 检查是否有未映射的标签
 if df['label_mapped'].isna().any():
-    print("错误：存在未能映射的标签", df[df['label_mapped'].isna()][LABEL_COL].unique())
+    print("警告：存在未映射的标签，请检查。")
+    print(df[df['label_mapped'].isna()][LABEL_COL].unique())
     exit()
 
-# 4. 提取需要列
-df = df[SENSOR_COLS + ['label_mapped', ID_COL]].copy()
+# 使用分层随机分割（保证每个类别比例一致）
+train_df, test_df = train_test_split(
+    df, 
+    test_size=0.2,  # 测试集占 20%
+    random_state=42,
+    stratify=df[LABEL_COL]  # 按原始标签分层
+)
+print(f"训练集样本数: {len(train_df)}")
+print(f"测试集样本数: {len(test_df)}")
+print(f"训练集标签分布:\n{train_df[LABEL_COL].value_counts().sort_index()}")
+print(f"测试集标签分布:\n{test_df[LABEL_COL].value_counts().sort_index()}")
 
-# 5. 按受试者划分训练/测试集
-train_df = df[df[ID_COL].isin(TRAIN_IDS)].copy()
-test_df = df[df[ID_COL].isin(TEST_IDS)].copy()
-print(f"训练集原始样本数: {len(train_df)}, 测试集原始样本数: {len(test_df)}")
-
-# 6. Min-Max 归一化（基于训练集）
+# Min-Max 归一化
 feature_cols = SENSOR_COLS
+# 计算训练集每列的 min/max
 min_vals = train_df[feature_cols].min()
 max_vals = train_df[feature_cols].max()
 
-# 检测常数通道
+# 检测常数通道（min == max）
 const_channels = []
 for col in feature_cols:
     if max_vals[col] - min_vals[col] < 1e-8:
         const_channels.append(col)
 if const_channels:
-    print(f"⚠️ 常数通道，将被置零: {const_channels}")
+    print(f"发现常数通道，将强制置零: {const_channels}")
 
 def minmax_normalize(data, min_vals, max_vals):
     denom = max_vals - min_vals
-    denom[denom < 1e-8] = 1.0
+    denom[denom < 1e-8] = 1.0          # 防止除零
     normalized = (data - min_vals) / denom
+    # 对于 min==max 的列，直接设为 0（归一化后自然为 0）
     for col in const_channels:
         normalized[col] = 0.0
     return normalized
@@ -66,7 +64,7 @@ def minmax_normalize(data, min_vals, max_vals):
 train_df[feature_cols] = minmax_normalize(train_df[feature_cols], min_vals, max_vals)
 test_df[feature_cols] = minmax_normalize(test_df[feature_cols], min_vals, max_vals)
 
-# 7. 滑动窗口
+# 滑动窗口函数
 def create_windows(group, window_size, step_size, sensor_cols, label_col='label_mapped'):
     data = group[sensor_cols].values
     labels = group[label_col].values
@@ -74,11 +72,11 @@ def create_windows(group, window_size, step_size, sensor_cols, label_col='label_
     window_labels = []
     for start in range(0, len(data) - window_size + 1, step_size):
         end = start + window_size
-        window = data[start:end].T   # (通道, 长度)
-        # 跳过包含 NaN 的窗口
+        window = data[start:end].T
         if np.isnan(window).any():
-            continue
+            continue        
         windows.append(window)
+        # 窗口内出现最多的标签
         label_counts = Counter(labels[start:end])
         most_common_label = label_counts.most_common(1)[0][0]
         window_labels.append(most_common_label)
@@ -105,7 +103,7 @@ x_test, y_test = process_dataset(test_df, WINDOW_SIZE, STEP_SIZE, SENSOR_COLS, I
 print(f"x_train 形状: {x_train.shape}, y_train 形状: {y_train.shape}")
 print(f"x_test 形状: {x_test.shape}, y_test 形状: {y_test.shape}")
 
-# 8. 保存
+#保存为 .npy
 os.makedirs(OUT_DIR, exist_ok=True)
 np.save(os.path.join(OUT_DIR, 'x_train.npy'), x_train)
 np.save(os.path.join(OUT_DIR, 'y_train.npy'), y_train)

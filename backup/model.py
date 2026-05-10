@@ -23,7 +23,7 @@ class Gesture1DCNN(nn.Module):
         return x
 
 if __name__ == "__main__":
-    model = Gesture1DCNN(input_channels=6, num_classes=5)
+    model = Gesture1DCNN(input_channels=6, num_classes=4)
     dummy = torch.randn(2, 6, 200)
     out = model(dummy)
-    print(f"输出形状: {out.shape}")
+    print(f"输出形状: {out.shape}")   # 期望 torch.Size([2, 5])
