@@ -1,0 +1,11 @@
+                  precision    recall  f1-score   support
+
+       chest_fly     0.9487    0.6167    0.7475        60
+     chest_press     0.5500    0.7333    0.6286        60
+    lat_pulldown     0.7455    0.6833    0.7130        60
+      seated_row     0.7887    0.9333    0.8550        60
+tricep_extension     0.9815    0.8983    0.9381        59
+
+        accuracy                         0.7726       299
+       macro avg     0.8029    0.7730    0.7764       299
+    weighted avg     0.8023    0.7726    0.7759       299
