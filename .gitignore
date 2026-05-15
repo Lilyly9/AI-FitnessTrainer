@@ -208,3 +208,7 @@ __marimo__/
 
 # 自定义：忽略数据集和模型文件
 models/
+
+#Microsoft RecoFit原始文件和未筛选数据
+Exercise-Recognition-from-Wearable-Sensors/
+data/processed/recofit_processed.csv
