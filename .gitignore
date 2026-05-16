@@ -212,3 +212,5 @@ models/
 #Microsoft RecoFit原始文件和未筛选数据
 Exercise-Recognition-from-Wearable-Sensors/
 data/processed/recofit_processed.csv
+#MM-Fit原始数据
+data/raw/mm-fit/
