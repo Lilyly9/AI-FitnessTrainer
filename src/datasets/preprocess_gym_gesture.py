@@ -119,6 +119,12 @@ def preprocess():
     np.save(os.path.join(OUT_DIR, 'y_train.npy'), y_train)
     np.save(os.path.join(OUT_DIR, 'x_test.npy'), x_test)
     np.save(os.path.join(OUT_DIR, 'y_test.npy'), y_test)
+
+    # 保存标签映射 {label_id: exercise_name}
+    mapping_df = pd.DataFrame([
+        {'label': v, 'name': k} for k, v in sorted(LABEL_MAP.items(), key=lambda x: x[1])
+    ])
+    mapping_df.to_csv(os.path.join(OUT_DIR, f'{dataset_name}_label_mapping.csv'), index=False)
     print(f"已保存到 data/processed/")
 
 

@@ -3,9 +3,8 @@ import numpy as np
 import os
 import random
 from model import Gesture1DCNN
+from data_utils import NUM_CLASSES, CLASS_NAMES
 
-CLASS_NAMES = ['chest_fly', 'chest_press', 'lat_pulldown', 'seated_row', 'tricep_extension']
-NUM_CLASSES = 5
 DATA_DIR = 'data/processed/'
 MODEL_DIR = 'models/'
 

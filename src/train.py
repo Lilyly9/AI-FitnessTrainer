@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader, random_split
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from model import Gesture1DCNN
 from dataset import GestureDataset
+from data_utils import NUM_CLASSES, CLASS_NAMES
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -18,10 +19,13 @@ VAL_SPLIT = 0.2
 MIXUP_ALPHA = 0.7
 PATIENCE = 30
 DATA_DIR = 'data/processed/'
-NUM_CLASSES = 5
 NUM_ENSEMBLE = 3
-CLASS_NAMES = ['chest_fly', 'chest_press', 'lat_pulldown', 'seated_row', 'tricep_extension']
-CLASS_WEIGHTS = torch.tensor([3.5, 2.5, 0.8, 0.5, 1.0])
+# 类别权重 — 前 5 个 Gym Gesture 类别用经验权重，其余用 1.0
+_gym_weights = torch.tensor([3.5, 2.5, 0.8, 0.5, 1.0], dtype=torch.float32)
+if NUM_CLASSES <= 5:
+    CLASS_WEIGHTS = _gym_weights[:NUM_CLASSES]
+else:
+    CLASS_WEIGHTS = torch.cat([_gym_weights, torch.ones(NUM_CLASSES - 5)])
 
 
 def mixup_batch(x, y, alpha):
@@ -47,10 +51,10 @@ def set_seed(seed):
 def train_one_model(seed):
     set_seed(seed)
 
-    train_ds_aug = GestureDataset(
+    train_ds_aug = GestureDataset( # 训练用，增强
         os.path.join(DATA_DIR, 'x_train.npy'),
         os.path.join(DATA_DIR, 'y_train.npy'), train=True)
-    train_ds_noaug = GestureDataset(
+    train_ds_noaug = GestureDataset( # 验证用，不增强
         os.path.join(DATA_DIR, 'x_train.npy'),
         os.path.join(DATA_DIR, 'y_train.npy'), train=False)
 

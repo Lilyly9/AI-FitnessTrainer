@@ -15,18 +15,17 @@ import matplotlib.pyplot as plt
 
 try:
     from rep_counter import SENSOR_COLS
+    from data_utils import CLASS_NAMES
 except ImportError:
     from src.rep_counter import SENSOR_COLS
+    from src.data_utils import CLASS_NAMES
 
-CLASS_NAMES = ['chest_fly', 'chest_press', 'lat_pulldown',
-               'seated_row', 'tricep_extension']
-
+# 动态生成足够多的颜色（循环使用基础色盘）
+_BASE_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6',
+                '#1abc9c', '#e67e22', '#2980b9', '#c0392b', '#8e44ad']
 CLASS_COLORS = {
-    'chest_fly': '#e74c3c',
-    'chest_press': '#3498db',
-    'lat_pulldown': '#2ecc71',
-    'seated_row': '#f39c12',
-    'tricep_extension': '#9b59b6',
+    name: _BASE_COLORS[i % len(_BASE_COLORS)]
+    for i, name in enumerate(CLASS_NAMES)
 }
 
 

@@ -4,12 +4,26 @@ import numpy as np
 
 
 class GestureDataset(Dataset):
-    """健身动作IMU数据集封装。训练模式开启数据增强。"""
+    """健身动作IMU数据集封装。训练模式开启数据增强。
+
+    支持从文件路径或内存数组创建:
+      GestureDataset('x.npy', 'y.npy', train=True)
+      GestureDataset.from_arrays(x_arr, y_arr, train=True)
+    """
 
     def __init__(self, x_path, y_path, train=True):
-        self.x = np.load(x_path).astype(np.float32)
-        self.y = np.load(y_path).astype(np.int64)
+        self.x = np.load(x_path, allow_pickle=True).astype(np.float32)
+        self.y = np.load(y_path, allow_pickle=True).astype(np.int64).flatten()
         self.train = train
+
+    @classmethod
+    def from_arrays(cls, x_array, y_array, train=True):
+        """从内存数组创建数据集。"""
+        ds = cls.__new__(cls)
+        ds.x = np.asarray(x_array, dtype=np.float32)
+        ds.y = np.asarray(y_array, dtype=np.int64).flatten()
+        ds.train = train
+        return ds
 
     def __len__(self):
         return len(self.x)
@@ -21,7 +35,7 @@ class GestureDataset(Dataset):
         if self.train:
             x = self._augment(x)
 
-        return torch.tensor(x), torch.tensor(y, dtype=torch.long)
+        return torch.tensor(x), torch.tensor(int(y), dtype=torch.long)
 
     @staticmethod
     def _augment(x):

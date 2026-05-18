@@ -12,12 +12,11 @@ from collections import Counter, deque
 
 try:
     from model import Gesture1DCNN
+    from data_utils import NUM_CLASSES, CLASS_NAMES
 except ImportError:
     from src.model import Gesture1DCNN
+    from src.data_utils import NUM_CLASSES, CLASS_NAMES
 
-CLASS_NAMES = ['chest_fly', 'chest_press', 'lat_pulldown',
-               'seated_row', 'tricep_extension']
-NUM_CLASSES = 5
 WINDOW_SIZE = 200
 STRIDE = 100
 
