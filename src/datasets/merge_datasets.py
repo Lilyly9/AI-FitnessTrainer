@@ -1,5 +1,8 @@
 """
-多数据集合并脚本 — 支持子文件夹和带前缀两种路径格式。
+多数据集合并脚本 — 所有数据集文件统一放在 data/processed/ 下。
+
+文件命名规则: {dataset_name}_{x_train,y_train,x_test,y_test}.npy
+标签映射:     {dataset_name}_label_mapping.csv
 
 用法:
   python src/datasets/merge_datasets.py --datasets gym_gesture recofit mmfit
@@ -15,25 +18,13 @@ OUT_DIR = 'data/processed/'
 
 
 def find_dataset_files(name):
-    """查找数据集文件，支持两种路径格式：
-    1. data/processed/{name}/{x_train,y_train,x_test,y_test}.npy  (子文件夹)
-    2. data/processed/{name}_{x_train,y_train,x_test,y_test}.npy (前缀)
-    """
-    patterns = [
-        # 子文件夹格式
-        (os.path.join(OUT_DIR, name, 'x_train.npy'),
-         os.path.join(OUT_DIR, name, 'y_train.npy'),
-         os.path.join(OUT_DIR, name, 'x_test.npy'),
-         os.path.join(OUT_DIR, name, 'y_test.npy')),
-        # 前缀格式
-        (os.path.join(OUT_DIR, f'{name}_x_train.npy'),
-         os.path.join(OUT_DIR, f'{name}_y_train.npy'),
-         os.path.join(OUT_DIR, f'{name}_x_test.npy'),
-         os.path.join(OUT_DIR, f'{name}_y_test.npy')),
-    ]
-    for tx, ty, ex, ey in patterns:
-        if os.path.exists(tx):
-            return tx, ty, ex, ey
+    """查找数据集文件（前缀格式）。"""
+    tx = os.path.join(OUT_DIR, f'{name}_x_train.npy')
+    ty = os.path.join(OUT_DIR, f'{name}_y_train.npy')
+    ex = os.path.join(OUT_DIR, f'{name}_x_test.npy')
+    ey = os.path.join(OUT_DIR, f'{name}_y_test.npy')
+    if os.path.exists(tx):
+        return tx, ty, ex, ey
     return None, None, None, None
 
 
@@ -56,9 +47,7 @@ def merge_datasets(dataset_names):
         y_te = np.load(ey)
 
         # 加载标签映射
-        mapping_path = os.path.join(OUT_DIR, name, 'label_mapping.csv')
-        if not os.path.exists(mapping_path):
-            mapping_path = os.path.join(OUT_DIR, f'{name}_label_mapping.csv')
+        mapping_path = os.path.join(OUT_DIR, f'{name}_label_mapping.csv')
         if os.path.exists(mapping_path):
             mapping = pd.read_csv(mapping_path)
             for _, row in mapping.iterrows():
