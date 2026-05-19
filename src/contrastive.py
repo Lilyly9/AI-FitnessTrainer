@@ -26,31 +26,53 @@ from dataset import GestureDataset
 
 
 class ContrastiveAugment:
-    """为对比学习生成两个不同的增强视图 (x_i, x_j) 作为正样本对。"""
+    """为对比学习生成两个不同的增强视图 (x_i, x_j) 作为正样本对。
+
+    支持 5 种数据增强策略：
+      - jitter:     添加高斯噪声
+      - scaling:    随机幅度缩放
+      - time_warp:  时间轴扭曲（插值重采样）
+      - permutation: 时间片段随机排列
+      - masking:    随机遮挡连续时间步
+    """
 
     def __init__(self, noise_std=0.05, scale_range=(0.7, 1.3),
-                 warp_range=(0.8, 1.2), shift_max=20, channel_drop_prob=0.2):
+                 warp_range=(0.8, 1.2), shift_max=20, channel_drop_prob=0.2,
+                 permute_segments=5, mask_ratio=0.1):
         self.noise_std = noise_std
         self.scale_range = scale_range
         self.warp_range = warp_range
         self.shift_max = shift_max
         self.channel_drop_prob = channel_drop_prob
+        self.permute_segments = permute_segments  # 排列增强的片段数
+        self.mask_ratio = mask_ratio  # 遮挡比例 (0~1)
 
     def __call__(self, x):
         x = x.copy()
+        # 1) Jitter: 高斯噪声
         if np.random.rand() < 0.8:
             x = x + np.random.randn(*x.shape).astype(np.float32) * self.noise_std
+        # 2) Scaling: 幅度缩放
         if np.random.rand() < 0.5:
             scale = np.random.uniform(*self.scale_range, size=(x.shape[0], 1)).astype(np.float32)
             x = x * scale
+        # 3) Time Warp: 时间轴扭曲
         if np.random.rand() < 0.5:
             t = np.arange(x.shape[1], dtype=np.float32)
             warp = np.random.uniform(*self.warp_range)
             for c in range(x.shape[0]):
                 x[c] = np.interp(t, t * warp, x[c])
+        # 4) Permutation: 时间片段随机排列
+        if np.random.rand() < 0.4:
+            x = self._permutation(x)
+        # 5) Masking: 随机遮挡连续时间步
+        if np.random.rand() < 0.4:
+            x = self._masking(x)
+        # 通道丢弃
         if np.random.rand() < self.channel_drop_prob:
             drop_ch = np.random.randint(0, x.shape[0])
             x[drop_ch] = 0
+        # 时间偏移
         if np.random.rand() < 0.3:
             shift = np.random.randint(-self.shift_max, self.shift_max + 1)
             if shift != 0:
@@ -59,6 +81,40 @@ class ContrastiveAugment:
                     x[:, :shift] = 0
                 else:
                     x[:, shift:] = 0
+        return x
+
+    def _permutation(self, x):
+        """将时间轴切分为若干段，随机打乱顺序后拼接。
+        增强模型对局部时序顺序变化的不变性。
+        """
+        T = x.shape[1]
+        n_seg = self.permute_segments
+        # 随机化片段数 (3 ~ permute_segments)
+        n_seg = np.random.randint(3, max(4, n_seg + 1))
+        seg_len = T // n_seg
+        if seg_len < 4:
+            return x  # 窗口太短，不切分
+        # 切分
+        segments = []
+        for i in range(n_seg):
+            start = i * seg_len
+            end = T if i == n_seg - 1 else (i + 1) * seg_len
+            segments.append(x[:, start:end])
+        # 随机打乱
+        indices = np.arange(len(segments))
+        np.random.shuffle(indices)
+        return np.concatenate([segments[i] for i in indices], axis=1)
+
+    def _masking(self, x):
+        """随机遮挡一段连续时间步（类似时间域的 Cutout）。
+        强制模型利用全局上下文而非局部模式。
+        """
+        T = x.shape[1]
+        mask_len = max(4, int(T * np.random.uniform(0.05, self.mask_ratio)))
+        if mask_len >= T - 1:
+            return x
+        start = np.random.randint(0, T - mask_len)
+        x[:, start:start + mask_len] = 0.0
         return x
 
 
@@ -126,7 +182,7 @@ def nt_xent_loss(z_i, z_j, temperature=0.5):
 
 def pretrain_simclr(data, backbone_name='Gesture1DCNN', batch_size=64,
                     epochs=100, lr=1e-3, temperature=0.5, proj_dim=64,
-                    device=None, save_path='models/pretrain_simclr.pth'):
+                    device=None, save_path='models/pretrained_encoder.pth'):
     """SimCLR 自监督预训练。"""
     if device is None:
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -242,7 +298,7 @@ def main():
     parser.add_argument('--finetune', action='store_true')
     parser.add_argument('--linear_eval', action='store_true')
     parser.add_argument('--data', default='data/processed/x_train.npy')
-    parser.add_argument('--pretrained', default='models/pretrain_simclr.pth')
+    parser.add_argument('--pretrained', default='models/pretrained_encoder.pth')
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=64)
     parser.add_argument('--lr', type=float, default=1e-3)
