@@ -162,7 +162,7 @@ def main():
         cls_name = cls_names[cls] if cls < len(cls_names) else f'Class_{cls}'
         pred_name = cls_names[pred_idx] if pred_idx < len(cls_names) else f'Class_{pred_idx}'
 
-        marker = '✓' if correct else ('○' if top3_correct else '✗')
+        marker = 'OK' if correct else ('T3' if top3_correct else 'XX')
         print(f"[{marker}] True: {cls_name} (id={cls})")
         print(f"      Pred: {pred_name} (id={pred_idx})")
 

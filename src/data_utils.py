@@ -1,4 +1,5 @@
 """
+自动读取数据集配置的工具类
 数据配置工具 — 自动从 dataset_meta.json 读取类别信息。
 所有脚本通过此模块获取 NUM_CLASSES / CLASS_NAMES，避免硬编码。
 """

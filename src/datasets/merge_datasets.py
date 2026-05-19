@@ -14,6 +14,7 @@ import os
 import argparse
 import json
 import re
+from collections import Counter
 
 OUT_DIR = 'data/processed/'
 
@@ -182,6 +183,81 @@ def merge_datasets(dataset_names):
     x_test = x_test.astype(np.float32)
     y_train = y_train.astype(np.int64)
     y_test = y_test.astype(np.int64)
+
+    # ═══════════════════════════════════════════════════════════
+    # 全局 Min-Max 归一化：在合并后的训练集上重新拟合，消除各数据集
+    # 独立归一化带来的数值空间不一致问题。
+    # ═══════════════════════════════════════════════════════════
+    print("\n全局 Min-Max 重归一化（消除跨数据集尺度差异）...")
+    global_min = x_train.min(axis=(0, 2), keepdims=True)
+    global_max = x_train.max(axis=(0, 2), keepdims=True)
+    global_range = global_max - global_min
+    global_range[global_range < 1e-8] = 1.0
+    x_train = (x_train - global_min) / global_range
+    x_test = (x_test - global_min) / global_range
+    print(f"  训练集范围: [{x_train.min():.4f}, {x_train.max():.4f}]")
+    print(f"  测试集范围: [{x_test.min():.4f}, {x_test.max():.4f}]")
+
+    # ═══════════════════════════════════════════════════════════
+    # 分层划分检查 & 自动修复：确保每个类别在训练集和测试集中均有样本。
+    # ═══════════════════════════════════════════════════════════
+    train_counter = Counter(y_train)
+    test_counter = Counter(y_test)
+    zero_test_cls = [c for c in range(n_classes) if test_counter.get(c, 0) == 0]
+    zero_train_cls = [c for c in range(n_classes) if train_counter.get(c, 0) == 0]
+
+    if zero_test_cls or zero_train_cls:
+        print(f"\n⚠️  发现划分问题 → 自动修复分层划分")
+        print(f"  测试集缺失的类别: {zero_test_cls}")
+        print(f"  训练集缺失的类别: {zero_train_cls}")
+
+        # 将所有数据合并，重新做分层划分
+        x_all = np.concatenate([x_train, x_test], axis=0)
+        y_all = np.concatenate([y_train, y_test], axis=0)
+
+        from sklearn.model_selection import train_test_split
+        x_train, x_test, y_train, y_test = train_test_split(
+            x_all, y_all, test_size=0.2, random_state=42,
+            stratify=y_all
+        )
+        print(f"  重新划分后: train={x_train.shape}, test={x_test.shape}")
+
+        # 验证
+        new_test_counter = Counter(y_test)
+        still_zero = [c for c in range(n_classes) if new_test_counter.get(c, 0) == 0]
+        if still_zero:
+            # 极少数情况：某类样本数 < 2，强制至少放1个到测试集
+            print(f"  仍有 {len(still_zero)} 类测试集样本不足，强制分配...")
+            for cls in still_zero:
+                cls_indices = np.where(y_all == cls)[0]
+                if len(cls_indices) >= 2:
+                    # 至少留1个在测试集
+                    test_idx = cls_indices[-1]
+                    train_mask = np.ones(len(y_all), dtype=bool)
+                    train_mask[test_idx] = False
+                    x_train = x_all[train_mask]
+                    y_train = y_all[train_mask]
+                    x_test = x_all[~train_mask]
+                    y_test = y_all[~train_mask]
+            print(f"  最终: train={x_train.shape}, test={x_test.shape}")
+    else:
+        print(f"\n✅ 分层划分检查通过 — 所有 {n_classes} 类在 train/test 中均有样本")
+
+    # ═══════════════════════════════════════════════════════════
+    # 类别分布报告
+    # ═══════════════════════════════════════════════════════════
+    train_counter = Counter(y_train)
+    test_counter = Counter(y_test)
+    print(f"\n=== 类别分布报告 ===")
+    min_cls = min(train_counter, key=train_counter.get)
+    max_cls = max(train_counter, key=train_counter.get)
+    print(f"  Train: min={train_counter[min_cls]} (class {min_cls}), "
+          f"max={train_counter[max_cls]} (class {max_cls}), "
+          f"ratio={train_counter[max_cls]/max(train_counter[min_cls],1):.1f}x")
+    print(f"  Test:  min={min(test_counter.values())} (class {min(test_counter, key=test_counter.get)}), "
+          f"max={max(test_counter.values())})")
+    print(f"  每类 test 样本 < 10 的类: "
+          f"{sum(1 for c in range(n_classes) if test_counter.get(c,0) < 10)}")
 
     # 打乱训练集
     rng = np.random.RandomState(42)
