@@ -5,6 +5,7 @@ from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from model import Gesture1DCNN
 from dataset import GestureDataset
 from data_utils import NUM_CLASSES, CLASS_NAMES
+from collections import Counter
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -20,12 +21,62 @@ MIXUP_ALPHA = 0.7
 PATIENCE = 30
 DATA_DIR = 'data/processed/'
 NUM_ENSEMBLE = 3
-# 类别权重 — 前 5 个 Gym Gesture 类别用经验权重，其余用 1.0
-_gym_weights = torch.tensor([3.5, 2.5, 0.8, 0.5, 1.0], dtype=torch.float32)
-if NUM_CLASSES <= 5:
-    CLASS_WEIGHTS = _gym_weights[:NUM_CLASSES]
-else:
-    CLASS_WEIGHTS = torch.cat([_gym_weights, torch.ones(NUM_CLASSES - 5)])
+
+
+def compute_class_weights(y_path=os.path.join(DATA_DIR, 'y_train.npy')):
+    """根据训练集样本数计算反频率类别权重。样本少的类权重高。"""
+    y = np.load(y_path)
+    counter = Counter(y)
+    total = len(y)
+    n_classes = len(counter)
+    weights = np.ones(n_classes, dtype=np.float32)
+    for cls, count in counter.items():
+        weights[cls] = total / (n_classes * count)
+    # 裁剪极端值
+    weights = np.clip(weights, 0.1, 10.0)
+    return torch.tensor(weights, dtype=torch.float32)
+
+
+class FocalLoss(nn.Module):
+    """Focal Loss — 自动降低已学好的样本的权重，聚焦困难样本。
+
+    FL = -alpha_t * (1 - p_t)^gamma * log(p_t)
+    gamma=0 退化为普通交叉熵。
+    """
+    def __init__(self, weight=None, gamma=2.0, label_smoothing=0.0):
+        super().__init__()
+        self.weight = weight
+        self.gamma = gamma
+        self.label_smoothing = label_smoothing
+
+    def forward(self, pred, target):
+        logp = torch.log_softmax(pred, dim=1)
+        pt = torch.exp(logp)  # (N, C)
+
+        # Label smoothing
+        if self.label_smoothing > 0:
+            n_classes = pred.size(1)
+            with torch.no_grad():
+                smooth_target = torch.full_like(pt, self.label_smoothing / (n_classes - 1))
+                smooth_target.scatter_(1, target.unsqueeze(1), 1.0 - self.label_smoothing)
+            ce = -(smooth_target * logp).sum(dim=1)
+        else:
+            ce = torch.nn.functional.nll_loss(logp, target, reduction='none')
+
+        # Focal scaling
+        p_t = pt.gather(1, target.unsqueeze(1)).squeeze(1)
+        focal_weight = (1 - p_t) ** self.gamma
+
+        loss = focal_weight * ce
+
+        if self.weight is not None:
+            loss = loss * self.weight[target]
+
+        return loss.mean()
+
+
+# 启动时自动计算权重
+CLASS_WEIGHTS = compute_class_weights()
 
 
 def mixup_batch(x, y, alpha):
@@ -71,7 +122,14 @@ def train_one_model(seed):
     model = Gesture1DCNN(input_channels=6, num_classes=NUM_CLASSES).to(device)
 
     class_weights = CLASS_WEIGHTS.to(device)
-    criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=0.05)
+    # 多分类(>10类)用 FocalLoss 天然处理不均衡，单数据集用 CE+Mixup
+    use_focal = NUM_CLASSES > 10
+    if use_focal:
+        criterion = FocalLoss(weight=class_weights, gamma=2.0, label_smoothing=0.05)
+        use_mixup = False
+    else:
+        criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=0.05)
+        use_mixup = MIXUP_ALPHA > 0
     optimizer = torch.optim.SGD(model.parameters(), lr=LR, momentum=MOMENTUM,
                                 weight_decay=1e-3, nesterov=True)
     scheduler = CosineAnnealingWarmRestarts(optimizer, T_0=20, T_mult=2, eta_min=1e-5)
@@ -86,10 +144,14 @@ def train_one_model(seed):
         train_loss = 0.0
         for inputs, labels in train_loader:
             inputs, labels = inputs.to(device), labels.to(device)
-            inputs, y_a, y_b, lam = mixup_batch(inputs, labels, MIXUP_ALPHA)
             optimizer.zero_grad()
-            outputs = model(inputs)
-            loss = mixup_loss(criterion, outputs, y_a, y_b, lam)
+            if use_mixup:
+                inputs, y_a, y_b, lam = mixup_batch(inputs, labels, MIXUP_ALPHA)
+                outputs = model(inputs)
+                loss = mixup_loss(criterion, outputs, y_a, y_b, lam)
+            else:
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()

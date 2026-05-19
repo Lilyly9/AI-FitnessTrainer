@@ -1,5 +1,5 @@
 {
-  "num_classes": 77,
+  "num_classes": 67,
   "class_names": [
     "chest_fly",
     "chest_press",
@@ -23,7 +23,6 @@
     "Overhead Triceps Ext",
     "Sit-up (hands behind)",
     "Dip",
-    "Unlisted Exercise",
     "Repetitive Stretching",
     "Shoulder Press",
     "V-up",
@@ -60,14 +59,6 @@
     "Fast Alternating Punches",
     "Dumbbell Squat (hands side)",
     "Dynamic Stretch (own pace)",
-    "Box Jump",
-    "Lawnmower (both arms)",
-    "Dumbbell Row (right)",
-    "Dumbbell Row (left)",
-    "Triceps Kickback (right)",
-    "Triceps Kickback (left)",
-    "Overhead Triceps Ext (both)",
-    "Alternating Dumbbell Curl",
     "bicep_curls",
     "dumbbell_rows",
     "dumbbell_shoulder_press",
@@ -76,21 +67,19 @@
     "lunges",
     "pushups",
     "situps",
-    "squats",
-    "tricep_extensions"
+    "squats"
   ],
-  "label_offsets": {
-    "gym_gesture": [
-      0,
-      5
-    ],
-    "recofit": [
-      5,
-      67
-    ],
-    "mmfit": [
-      67,
-      77
-    ]
-  }
+  "label_offsets": {},
+  "dropped_classes": [
+    "Unlisted Exercise",
+    "Box Jump",
+    "Lawnmower (both arms)",
+    "Dumbbell Row (right)",
+    "Dumbbell Row (left)",
+    "Triceps Kickback (right)",
+    "Triceps Kickback (left)",
+    "Overhead Triceps Ext (both)",
+    "Alternating Dumbbell Curl",
+    "tricep_extensions"
+  ]
 }
