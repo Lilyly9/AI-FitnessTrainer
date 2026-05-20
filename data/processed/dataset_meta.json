@@ -6,15 +6,15 @@
     "lat pulldown",
     "seated row",
     "tricep_extension",
-    "bicep_curl",
-    "dumbbell_row",
-    "dumbbell_shoulder_press",
-    "jumping_jack",
-    "lateral_raise",
-    "lunge",
+    "squat",
     "pushup",
+    "dumbbell_shoulder_press",
+    "lunge",
+    "dumbbell_row",
     "situp",
-    "squat"
+    "bicep_curl",
+    "lateral_raise",
+    "jumping_jack"
   ],
   "label_sets": {
     "gym_gesture": [
@@ -45,7 +45,7 @@
     ],
     "dataset_domains": {
       "gym_gesture": 1,
-      "mmfit": -1
+      "mmfit": 1
     }
   }
 }

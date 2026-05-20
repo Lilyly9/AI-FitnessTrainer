@@ -15,7 +15,7 @@
   python src/datasets/preprocess_recofit.py
 
 多数据集合并:
-  python src/datasets/merge_datasets.py --datasets gym_gesture mmfit recofit recgym
+  python src/datasets/merge_datasets.py --datasets gym_gesture mmfit recofit
 """
 
 import argparse

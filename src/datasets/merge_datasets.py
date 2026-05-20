@@ -74,7 +74,8 @@ def merge_datasets(dataset_names):
         if os.path.exists(mapping_path):
             mapping = pd.read_csv(mapping_path)
             for _, row in mapping.iterrows():
-                label_name = row['name']
+                # 兼容不同命名的列：name / activity_name
+                label_name = row.get('name', row.get('activity_name', f'{name}_class_{row.iloc[0]}'))
                 normalized = _normalize_name(label_name)
                 canonical = _to_canonical(normalized)
                 if canonical not in canonical_to_global:
@@ -122,8 +123,8 @@ def merge_datasets(dataset_names):
         if os.path.exists(mapping_path):
             mapping = pd.read_csv(mapping_path)
             for _, row in mapping.iterrows():
-                local_lbl = int(row['label'])
-                label_name = row['name']
+                local_lbl = int(row.get('label', row.get('label_id', 0)))
+                label_name = row.get('name', row.get('activity_name', f'class_{local_lbl}'))
                 canonical = _to_canonical(_normalize_name(label_name))
                 global_lbl = canonical_to_global[canonical]
                 local_to_global[local_lbl] = global_lbl

@@ -70,14 +70,24 @@ class ResCNN1D(nn.Module):
             layers.append(ResBlock1D(out_ch, out_ch, dropout=dropout))
         return nn.Sequential(*layers)
 
-    def forward(self, x):
+    def _extract_features(self, x):
         x = self.stem(x)
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
         x_avg = self.avgpool(x).flatten(1)
         x_max = self.maxpool(x).flatten(1)
-        return self.fc(torch.cat([x_avg, x_max], dim=1))
+        return torch.cat([x_avg, x_max], dim=1)
+
+    def forward(self, x, return_features=False):
+        features = self._extract_features(x)
+        logits = self.fc(features)
+        if return_features:
+            return logits, features, None
+        return logits
+
+    def get_features(self, x):
+        return self._extract_features(x)
 
 
 # ============================================================
@@ -109,13 +119,23 @@ class DeepConvLSTM(nn.Module):
         self.drop_lstm = nn.Dropout(dropout)
         self.fc = nn.Linear(lstm_hidden * 2, num_classes)
 
-    def forward(self, x):
+    def _extract_features(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
         x = self.drop_cnn(x).transpose(1, 2)
         out, _ = self.lstm(x)
-        return self.fc(self.drop_lstm(out[:, -1, :]))
+        return self.drop_lstm(out[:, -1, :])
+
+    def forward(self, x, return_features=False):
+        features = self._extract_features(x)
+        logits = self.fc(features)
+        if return_features:
+            return logits, features, None
+        return logits
+
+    def get_features(self, x):
+        return self._extract_features(x)
 
 
 # ============================================================
@@ -140,15 +160,24 @@ class Gesture1DCNN(nn.Module):
         self.gmp = nn.AdaptiveMaxPool1d(1)
         self.fc = nn.Linear(256, num_classes)
 
-    def forward(self, x):
+    def _extract_features(self, x):
         x = self.pool1(F.relu(self.in1(self.conv1(x))))
         x = self.drop1(x)
         x = self.pool2(F.relu(self.in2(self.conv2(x))))
         x = self.drop2(x)
         x = self.pool3(F.relu(self.in3(self.conv3(x))))
         x = self.drop3(x)
-        x = torch.cat([self.gap(x).flatten(1), self.gmp(x).flatten(1)], dim=1)
-        return self.fc(x)
+        return torch.cat([self.gap(x).flatten(1), self.gmp(x).flatten(1)], dim=1)
+
+    def forward(self, x, return_features=False):
+        features = self._extract_features(x)
+        logits = self.fc(features)
+        if return_features:
+            return logits, features, None
+        return logits
+
+    def get_features(self, x):
+        return self._extract_features(x)
 
 
 # ============================================================
