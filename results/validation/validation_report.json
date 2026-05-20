@@ -1,0 +1,499 @@
+{
+  "data_dir": "data/processed/",
+  "num_classes": 14,
+  "class_names": [
+    "chest fly",
+    "chest press",
+    "lat pulldown",
+    "seated row",
+    "tricep_extension",
+    "bicep_curl",
+    "dumbbell_row",
+    "dumbbell_shoulder_press",
+    "jumping_jack",
+    "lateral_raise",
+    "lunge",
+    "pushup",
+    "situp",
+    "squat"
+  ],
+  "shape": {
+    "status": "PASS",
+    "checks": {
+      "x_train_exists": true,
+      "y_train_exists": true,
+      "x_test_exists": true,
+      "y_test_exists": true,
+      "ndim": {
+        "train": 3,
+        "test": 3,
+        "ok": true
+      },
+      "channels": {
+        "train": 6,
+        "test": 6,
+        "expected": 6,
+        "ok": true
+      },
+      "window_size": {
+        "train": 200,
+        "test": 200,
+        "expected": 200,
+        "ok": true
+      },
+      "sample_count": {
+        "train": 4199,
+        "test": 1002,
+        "total": 5201,
+        "test_ratio": 0.193
+      },
+      "label_consistency": {
+        "train_match": true,
+        "test_match": true,
+        "ok": true
+      },
+      "domain_consistency": {
+        "ok": true
+      }
+    }
+  },
+  "labels": {
+    "status": "PASS",
+    "checks": {
+      "label_range": {
+        "min": 0,
+        "max": 13,
+        "n_unique": 14
+      },
+      "contiguous": {
+        "ok": true,
+        "missing_labels": []
+      },
+      "train_test_coverage": {
+        "train_only": [],
+        "test_only": [],
+        "both_count": 14,
+        "ok": true
+      },
+      "csv_consistency": {
+        "ok": true
+      }
+    }
+  },
+  "class_distribution": {
+    "status": "PASS",
+    "stats": {
+      "n_classes": 14,
+      "train": {
+        "total": 4199,
+        "min": 240,
+        "max": 424,
+        "mean": 299.92857142857144,
+        "median": 293.0,
+        "imbalance_ratio": 1.8
+      },
+      "test": {
+        "total": 1002,
+        "min": 56,
+        "max": 99,
+        "mean": 71.57142857142857,
+        "median": 67.0,
+        "imbalance_ratio": 1.8
+      },
+      "long_tail_classes": [],
+      "zero_sample_classes": []
+    },
+    "details": [
+      {
+        "class": 0,
+        "name": "chest fly",
+        "train": 240,
+        "test": 60,
+        "total": 300,
+        "test_train_ratio": 0.25
+      },
+      {
+        "class": 1,
+        "name": "chest press",
+        "train": 240,
+        "test": 60,
+        "total": 300,
+        "test_train_ratio": 0.25
+      },
+      {
+        "class": 2,
+        "name": "lat pulldown",
+        "train": 240,
+        "test": 60,
+        "total": 300,
+        "test_train_ratio": 0.25
+      },
+      {
+        "class": 3,
+        "name": "seated row",
+        "train": 240,
+        "test": 60,
+        "total": 300,
+        "test_train_ratio": 0.25
+      },
+      {
+        "class": 4,
+        "name": "tricep_extension",
+        "train": 359,
+        "test": 96,
+        "total": 455,
+        "test_train_ratio": 0.267
+      },
+      {
+        "class": 5,
+        "name": "bicep_curl",
+        "train": 308,
+        "test": 72,
+        "total": 380,
+        "test_train_ratio": 0.234
+      },
+      {
+        "class": 6,
+        "name": "dumbbell_row",
+        "train": 263,
+        "test": 56,
+        "total": 319,
+        "test_train_ratio": 0.213
+      },
+      {
+        "class": 7,
+        "name": "dumbbell_shoulder_press",
+        "train": 326,
+        "test": 74,
+        "total": 400,
+        "test_train_ratio": 0.227
+      },
+      {
+        "class": 8,
+        "name": "jumping_jack",
+        "train": 424,
+        "test": 99,
+        "total": 523,
+        "test_train_ratio": 0.233
+      },
+      {
+        "class": 9,
+        "name": "lateral_raise",
+        "train": 268,
+        "test": 66,
+        "total": 334,
+        "test_train_ratio": 0.246
+      },
+      {
+        "class": 10,
+        "name": "lunge",
+        "train": 391,
+        "test": 91,
+        "total": 482,
+        "test_train_ratio": 0.233
+      },
+      {
+        "class": 11,
+        "name": "pushup",
+        "train": 312,
+        "test": 68,
+        "total": 380,
+        "test_train_ratio": 0.218
+      },
+      {
+        "class": 12,
+        "name": "situp",
+        "train": 278,
+        "test": 62,
+        "total": 340,
+        "test_train_ratio": 0.223
+      },
+      {
+        "class": 13,
+        "name": "squat",
+        "train": 310,
+        "test": 78,
+        "total": 388,
+        "test_train_ratio": 0.252
+      }
+    ]
+  },
+  "numerical": {
+    "status": "PASS",
+    "checks": {
+      "train_channel_stats": [
+        {
+          "channel": "acc_x",
+          "mean": 0.4399397671222687,
+          "std": 0.12636053562164307,
+          "min": 0.0,
+          "max": 1.0
+        },
+        {
+          "channel": "acc_y",
+          "mean": 0.5115183591842651,
+          "std": 0.06690339744091034,
+          "min": 0.0,
+          "max": 1.0
+        },
+        {
+          "channel": "acc_z",
+          "mean": 0.5032104849815369,
+          "std": 0.1121295690536499,
+          "min": 0.0,
+          "max": 1.0
+        },
+        {
+          "channel": "gyro_x",
+          "mean": 0.4810367524623871,
+          "std": 0.029979445040225983,
+          "min": 0.0,
+          "max": 1.0
+        },
+        {
+          "channel": "gyro_y",
+          "mean": 0.4798997938632965,
+          "std": 0.053145572543144226,
+          "min": 0.0,
+          "max": 1.0
+        },
+        {
+          "channel": "gyro_z",
+          "mean": 0.4736824929714203,
+          "std": 0.08112110942602158,
+          "min": 0.0,
+          "max": 1.0
+        }
+      ],
+      "train_nan_inf": {
+        "nan_count": 0,
+        "inf_count": 0,
+        "ok": true
+      },
+      "train_all_zero": {
+        "count": 0,
+        "ok": true
+      },
+      "train_constant_windows": {
+        "count": 0,
+        "ok": true
+      },
+      "train_outliers": {
+        "count": 1550,
+        "ok": true
+      },
+      "test_channel_stats": [
+        {
+          "channel": "acc_x",
+          "mean": 0.450478196144104,
+          "std": 0.1282055526971817,
+          "min": 0.12298814952373505,
+          "max": 0.8577072620391846
+        },
+        {
+          "channel": "acc_y",
+          "mean": 0.5153815150260925,
+          "std": 0.06858575344085693,
+          "min": 0.14116840064525604,
+          "max": 0.8411595821380615
+        },
+        {
+          "channel": "acc_z",
+          "mean": 0.5168224573135376,
+          "std": 0.11641360074281693,
+          "min": 0.19362439215183258,
+          "max": 0.8213131427764893
+        },
+        {
+          "channel": "gyro_x",
+          "mean": 0.48026490211486816,
+          "std": 0.026353998109698296,
+          "min": 0.009971839375793934,
+          "max": 0.8895764946937561
+        },
+        {
+          "channel": "gyro_y",
+          "mean": 0.47709253430366516,
+          "std": 0.04331474006175995,
+          "min": 0.06488783657550812,
+          "max": 0.9609612226486206
+        },
+        {
+          "channel": "gyro_z",
+          "mean": 0.47407209873199463,
+          "std": 0.07494860887527466,
+          "min": -0.0021905372850596905,
+          "max": 0.858063280582428
+        }
+      ],
+      "test_nan_inf": {
+        "nan_count": 0,
+        "inf_count": 0,
+        "ok": true
+      },
+      "test_all_zero": {
+        "count": 0,
+        "ok": true
+      },
+      "test_constant_windows": {
+        "count": 0,
+        "ok": true
+      },
+      "test_outliers": {
+        "count": 38,
+        "ok": true
+      }
+    }
+  },
+  "sliding_windows": {
+    "n_samples_visualized": 6,
+    "label_changes_in_sorted": 2,
+    "avg_consecutive_same_label": 250.0,
+    "note": "原始数据已 shuffle，按标签排序后检查"
+  },
+  "domain_distribution": {
+    "pca_variance_ratio": [
+      0.8108,
+      0.09
+    ],
+    "domain_feature_distance": 0.0136,
+    "n_samples_used": 3000
+  },
+  "augmentation": {
+    "n_samples_compared": 4
+  },
+  "wrist_forearm": {
+    "ks_test": [
+      {
+        "channel": "acc_x",
+        "ks_statistic": 0.024,
+        "ks_pvalue": 0.112251
+      },
+      {
+        "channel": "acc_y",
+        "ks_statistic": 0.0266,
+        "ks_pvalue": 0.058149
+      },
+      {
+        "channel": "acc_z",
+        "ks_statistic": 0.0278,
+        "ks_pvalue": 0.041954
+      },
+      {
+        "channel": "gyro_x",
+        "ks_statistic": 0.0236,
+        "ks_pvalue": 0.123456
+      },
+      {
+        "channel": "gyro_y",
+        "ks_statistic": 0.0166,
+        "ks_pvalue": 0.496232
+      },
+      {
+        "channel": "gyro_z",
+        "ks_statistic": 0.0306,
+        "ks_pvalue": 0.01852
+      }
+    ],
+    "domains": {
+      "-1": "unknown",
+      "1": "wrist"
+    }
+  },
+  "confusable_classes": {
+    "method": "class_mean_cosine_similarity",
+    "top10_confusable_pairs": [
+      {
+        "class_a": 10,
+        "name_a": "lunge",
+        "class_b": 11,
+        "name_b": "pushup",
+        "cosine_similarity": 1.0
+      },
+      {
+        "class_a": 10,
+        "name_a": "lunge",
+        "class_b": 12,
+        "name_b": "situp",
+        "cosine_similarity": 1.0
+      },
+      {
+        "class_a": 11,
+        "name_a": "pushup",
+        "class_b": 12,
+        "name_b": "situp",
+        "cosine_similarity": 1.0
+      },
+      {
+        "class_a": 5,
+        "name_a": "bicep_curl",
+        "class_b": 7,
+        "name_b": "dumbbell_shoulder_press",
+        "cosine_similarity": 0.9999
+      },
+      {
+        "class_a": 7,
+        "name_a": "dumbbell_shoulder_press",
+        "class_b": 8,
+        "name_b": "jumping_jack",
+        "cosine_similarity": 0.9999
+      },
+      {
+        "class_a": 8,
+        "name_a": "jumping_jack",
+        "class_b": 9,
+        "name_b": "lateral_raise",
+        "cosine_similarity": 0.9999
+      },
+      {
+        "class_a": 9,
+        "name_a": "lateral_raise",
+        "class_b": 10,
+        "name_b": "lunge",
+        "cosine_similarity": 0.9999
+      },
+      {
+        "class_a": 9,
+        "name_a": "lateral_raise",
+        "class_b": 11,
+        "name_b": "pushup",
+        "cosine_similarity": 0.9999
+      },
+      {
+        "class_a": 9,
+        "name_a": "lateral_raise",
+        "class_b": 13,
+        "name_b": "squat",
+        "cosine_similarity": 0.9999
+      },
+      {
+        "class_a": 10,
+        "name_a": "lunge",
+        "class_b": 13,
+        "name_b": "squat",
+        "cosine_similarity": 0.9999
+      }
+    ]
+  },
+  "confusion_matrix": {
+    "method": "KNN_k5_cosine",
+    "accuracy": 0.265,
+    "classification_report": "                         precision    recall  f1-score   support\n\n              chest fly       1.00      0.08      0.16        59\n            chest press       0.06      0.02      0.03        60\n           lat pulldown       0.43      0.73      0.54        60\n             seated row       0.52      0.98      0.68        59\n       tricep_extension       0.57      0.62      0.59        96\n             bicep_curl       0.21      0.31      0.25        72\n           dumbbell_row       0.17      0.20      0.18        56\ndumbbell_shoulder_press       0.12      0.09      0.11        74\n           jumping_jack       0.18      0.20      0.19        99\n          lateral_raise       0.18      0.23      0.20        66\n                  lunge       0.03      0.03      0.03        91\n                 pushup       0.09      0.06      0.07        68\n                  situp       0.08      0.05      0.06        62\n                  squat       0.25      0.15      0.19        78\n\n               accuracy                           0.27      1000\n              macro avg       0.28      0.27      0.23      1000\n           weighted avg       0.27      0.27      0.23      1000\n"
+  },
+  "training_logs": {
+    "found": true,
+    "path": "results\\train_log.txt",
+    "last_key_lines": [
+      "  f1=0.382  lawnmower (left)                              n=58",
+      "  f1=0.362  triceps kickback (left)                       n=41",
+      "  f1=0.319  squat (hands behind)                          n=63",
+      "  f1=0.220  band pull down row                            n=79",
+      "  f1=0.139  dumbbell_shoulder_press                       n=80",
+      "  ...  F1=0: 0/14",
+      "  gym_gesture: acc=0.8701  mf1=0.9158  n=331",
+      "  recofit: acc=0.3796  mf1=0.3698  n=353",
+      "  mmfit: acc=0.4864  mf1=0.4669  n=331",
+      "Done! Model saved: models/best_model_v2.pth"
+    ]
+  }
+}

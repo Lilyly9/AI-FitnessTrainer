@@ -1,0 +1,20 @@
+                         precision    recall  f1-score   support
+
+              chest fly      0.111     0.017     0.029        60
+            chest press      0.306     0.433     0.359        60
+           lat pulldown      0.515     0.833     0.637        60
+             seated row      0.314     1.000     0.478        60
+       tricep_extension      0.630     0.177     0.276        96
+             bicep_curl      0.143     0.028     0.047        72
+           dumbbell_row      0.000     0.000     0.000        56
+dumbbell_shoulder_press      0.000     0.000     0.000        74
+           jumping_jack      0.138     0.040     0.062        99
+          lateral_raise      0.122     0.439     0.191        66
+                  lunge      0.000     0.000     0.000        91
+                 pushup      0.069     0.029     0.041        68
+                  situp      0.049     0.081     0.061        62
+                  squat      0.110     0.256     0.154        78
+
+               accuracy                          0.216      1002
+              macro avg      0.179     0.238     0.167      1002
+           weighted avg      0.183     0.216     0.157      1002

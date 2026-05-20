@@ -28,6 +28,8 @@ WINDOW_SIZE = 200
 STEP_SIZE = 20         # 步长 20，确保每类样本数 ≥ 1500
 TEST_RATIO = 0.2
 RANDOM_SEED = 42
+DOMAIN_ID = 'forearm'  # RecoFit 传感器佩戴位置：前臂 (arm-band)
+SENSOR_POSITION = 'forearm'
 
 # ==================== 数据量最大的 25 个动作 ====================
 SELECTED_ACTIVITIES = [
@@ -228,12 +230,18 @@ def preprocess():
     else:
         print("✅ 每类样本数均 ≥ 1500")
 
-    # 6. 保存
+    # 6. Domain label: 所有 RecoFit 样本均为 forearm (domain_id=0)
+    domain_train = np.zeros(len(X_train), dtype=np.int64)
+    domain_test = np.zeros(len(X_test), dtype=np.int64)
+
+    # 7. 保存
     print("\n保存 .npy 文件...")
     np.save(os.path.join(OUT_DIR, 'x_train.npy'), X_train)
     np.save(os.path.join(OUT_DIR, 'y_train.npy'), y_train)
+    np.save(os.path.join(OUT_DIR, 'domain_train.npy'), domain_train)
     np.save(os.path.join(OUT_DIR, 'x_test.npy'), X_test)
     np.save(os.path.join(OUT_DIR, 'y_test.npy'), y_test)
+    np.save(os.path.join(OUT_DIR, 'domain_test.npy'), domain_test)
 
     mapping_df = pd.DataFrame(
         [(i, name) for i, name in enumerate(SELECTED_ACTIVITIES)],
@@ -244,7 +252,14 @@ def preprocess():
     np.savez(os.path.join(OUT_DIR, 'norm_params.npz'),
              min_vals=min_vals.squeeze(), max_vals=max_vals.squeeze())
 
+    # 保存 domain 元信息
+    import json
+    with open(os.path.join(OUT_DIR, 'domain_info.json'), 'w') as f:
+        json.dump({'domain_id': DOMAIN_ID, 'sensor_position': SENSOR_POSITION,
+                   'domain_label': 0, 'description': 'arm-band on forearm'}, f)
+
     assert len(set(train_subjs) & set(test_subjs)) == 0, "受试者有交集！"
+    print(f"Domain label: {DOMAIN_ID} (id=0)")
     print("\n✅ 预处理完成！")
 
 

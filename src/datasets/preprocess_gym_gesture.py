@@ -30,6 +30,7 @@ LABEL_MAP = {
 }
 TRAIN_IDS = [1, 2, 3, 4]
 TEST_IDS = [5]
+DOMAIN_ID = 'wrist'  # Gym Gesture 传感器佩戴位置：手腕 (Arduino Nano 33 BLE)
 
 
 def create_windows(group, window_size, step_size, sensor_cols, label_col):
@@ -125,6 +126,13 @@ def preprocess():
         {'label': v, 'name': k} for k, v in sorted(LABEL_MAP.items(), key=lambda x: x[1])
     ])
     mapping_df.to_csv(os.path.join(OUT_DIR, f'{dataset_name}_label_mapping.csv'), index=False)
+
+    # Domain label: wrist (domain_id=1)
+    domain_train = np.ones(len(x_train), dtype=np.int64)
+    domain_test = np.ones(len(x_test), dtype=np.int64)
+    np.save(os.path.join(OUT_DIR, f'{dataset_name}_domain_train.npy'), domain_train)
+    np.save(os.path.join(OUT_DIR, f'{dataset_name}_domain_test.npy'), domain_test)
+    print(f"Domain label: {DOMAIN_ID} (id=1)")
     print(f"已保存到 data/processed/")
 
 

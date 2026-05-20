@@ -49,6 +49,8 @@ LABEL_MAP = {
     'jumping_jacks': 9,
 }
 
+DOMAIN_ID = 'wrist'  # MM-Fit 传感器佩戴位置：左手手腕 (smartwatch)
+
 DEFAULT_TRAIN_SESSIONS = [
     'w00', 'w01', 'w02', 'w03', 'w04', 'w05', 'w06', 'w07',
     'w08', 'w09', 'w10', 'w11', 'w12', 'w13', 'w14', 'w15',
@@ -380,10 +382,17 @@ def preprocess(csv_fallback=True, train_sessions=None, test_sessions=None):
         columns=['label_id', 'activity_name']
     ).to_csv(mapping_path, index=False)
 
+    # Domain label: wrist (domain_id=1)
+    domain_train = np.ones(len(X_train), dtype=np.int64)
+    domain_test = np.ones(len(X_test), dtype=np.int64)
+    np.save(os.path.join(OUT_DIR, f'{DATASET_NAME}_domain_train.npy'), domain_train)
+    np.save(os.path.join(OUT_DIR, f'{DATASET_NAME}_domain_test.npy'), domain_test)
+
     # 保存归一化参数
     np.savez(os.path.join(OUT_DIR, f'{DATASET_NAME}_norm_params.npz'),
              min_vals=min_vals.squeeze(), max_vals=max_vals.squeeze())
 
+    print(f"Domain label: {DOMAIN_ID} (id=1)")
     print(f"\n输出文件:")
     print(f"  {OUT_DIR}{DATASET_NAME}_x_train.npy  ({X_train.shape})")
     print(f"  {OUT_DIR}{DATASET_NAME}_y_train.npy  ({y_train.shape})")
